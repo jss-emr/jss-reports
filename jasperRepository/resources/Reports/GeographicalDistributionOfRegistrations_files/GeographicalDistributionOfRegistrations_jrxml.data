@@ -60,7 +60,7 @@ FROM   person p,
 	    patient_identifier pi, 
        idgen_identifier_source iis
 WHERE  p.person_id  = pi.patient_id
-       AND pi.identifier like concat(iis.name, '%')
+       AND pi.identifier like concat((select prefix from idgen_seq_id_gen sqgen where sqgen.id = iis.id ), '%')
        AND Year(p.date_created) = $P{Enter_the_year}
 GROUP  BY iis.name,
           Floor(Month(p.date_created) / 4 + 1),
