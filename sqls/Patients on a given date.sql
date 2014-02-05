@@ -21,7 +21,7 @@ pi.patient_id as patient_id,
 from encounter e
 left outer join obs o on e.encounter_id = o.encounter_id and o.voided = 0
 left outer join patient_identifier pi on e.patient_id = pi.patient_id and pi.preferred = 1 and pi.voided = 0
-left outer join person_name pn on e.patient_id = pn.person_id and pn.voided = 0 and pn.preferred = 0
+left outer join person_name pn on e.patient_id = pn.person_id and pn.voided = 0 and pn.preferred = 1
 left outer join concept_name cn on o.concept_id = cn.concept_id
 	and concept_name_type = 'FULLY_SPECIFIED'
 	and cn.voided = 0
