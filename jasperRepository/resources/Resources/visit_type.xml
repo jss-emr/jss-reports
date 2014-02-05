@@ -23,11 +23,11 @@
             <updateDate>2013-06-01T15:55:00.000+05:30</updateDate>
             <item>
                 <itemLabel>New Patient</itemLabel>
-                <itemValue xsi:type="java:java.lang.String">REG</itemValue>
+                <itemValue xsi:type="java:java.lang.String">OPD - NEW</itemValue>
             </item>
             <item>
                 <itemLabel>Returning Patient</itemLabel>
-                <itemValue xsi:type="java:java.lang.String">REVISIT</itemValue>
+                <itemValue xsi:type="java:java.lang.String">OPD - RETURNING</itemValue>
             </item>
         </localResource>
     </listOfValues>
