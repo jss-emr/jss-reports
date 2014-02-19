@@ -2,33 +2,31 @@
 <inputControl>
     <folder>/Resources</folder>
     <name>visit_type</name>
-    <version>2</version>
+    <version>5</version>
     <label>Visit Type</label>
     <description>Type of visit</description>
-    <creationDate>2013-06-01T15:03:46.000+05:30</creationDate>
-    <updateDate>2013-06-01T16:28:08.000+05:30</updateDate>
-    <type>3</type>
+    <creationDate>2014-02-19T11:35:15.000+05:30</creationDate>
+    <updateDate>2014-02-19T12:42:58.000+05:30</updateDate>
+    <type>11</type>
     <mandatory>true</mandatory>
     <readOnly>false</readOnly>
     <visible>true</visible>
-    <listOfValues>
+    <query>
         <localResource
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="listOfValues">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="query">
             <folder>/Resources/visit_type_files</folder>
-            <name>visit_list</name>
-            <version>2</version>
-            <label>visit_list</label>
-            <description></description>
-            <creationDate>2013-06-01T15:55:00.000+05:30</creationDate>
-            <updateDate>2013-06-01T15:55:00.000+05:30</updateDate>
-            <item>
-                <itemLabel>New Patient</itemLabel>
-                <itemValue xsi:type="java:java.lang.String">OPD - NEW</itemValue>
-            </item>
-            <item>
-                <itemLabel>Returning Patient</itemLabel>
-                <itemValue xsi:type="java:java.lang.String">OPD - RETURNING</itemValue>
-            </item>
+            <name>get_visit_types</name>
+            <version>1</version>
+            <label>get_visit_types</label>
+            <creationDate>2014-02-19T12:42:58.000+05:30</creationDate>
+            <updateDate>2014-02-19T12:42:58.000+05:30</updateDate>
+            <language>sql</language>
+            <queryString>Select visit_type_id, name from visit_type</queryString>
+            <dataSource>
+                <uri>/Data_Sources/openmrs</uri>
+            </dataSource>
         </localResource>
-    </listOfValues>
+    </query>
+    <queryVisibleColumn>name</queryVisibleColumn>
+    <queryValueColumn>visit_type_id</queryValueColumn>
 </inputControl>

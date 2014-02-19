@@ -7,9 +7,9 @@
 	<parameter name="date" class="java.util.Date">
 		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
 	</parameter>
-	<parameter name="visit_type" class="java.lang.String"/>
+	<parameter name="visit_type" class="java.util.List"/>
 	<parameter name="centers" class="java.util.List">
-		<defaultValueExpression><![CDATA[Arrays.asList("Ganiyari")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[Arrays.asList("GAN")]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select
@@ -24,9 +24,9 @@
 			sum(case when cn.name = 'WEIGHT' then o.value_numeric else 0 end) as weight,
 			(select max(date_started)
 				from visit vis where vis.patient_id = e.patient_id
-				and date(vis.date_created) <= date(e.date_created)
+				and vis.date_created < v.date_created
 			) last_visit
-		from  visit v 
+		from  visit v
 		left outer join encounter e on e.visit_id = v.visit_id and e.encounter_type in (select encounter_type_id from encounter_type where name ="REG")
 		left outer join obs o on e.encounter_id = o.encounter_id and o.voided = 0
 		left outer join patient_identifier pi on v.patient_id = pi.patient_id and pi.preferred = 1 and pi.voided = 0
@@ -35,9 +35,7 @@
 		left outer join concept_name cn on o.concept_id = cn.concept_id
 			and concept_name_type = 'FULLY_SPECIFIED'
 			and cn.voided = 0
-		left outer join visit_type vt on v.visit_type_id = vt.visit_type_id
-		where date(v.date_started) = $P{date}
-			and vt.name = $P{visit_type}
+		where date(v.date_started) = $P{date} and $X{IN,v.visit_type_id,visit_type} and $X{IN,iis.name,centers}
 		group by v.visit_id,
 				pi.identifier,
 				pi.patient_id,
@@ -73,7 +71,7 @@
 					<textElement verticalAlignment="Middle">
 						<font size="24" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($P{visit_type} == "OPD - NEW" ? "New" : "Returning") + " Patient Registration Report"]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Daily Registration Report"]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="10e8080a-99c6-4134-a2c0-968adf3e41b5" x="92" y="63" width="184" height="20" forecolor="#FFFFFF"/>
@@ -91,7 +89,7 @@
 					<textElement verticalAlignment="Middle">
 						<font size="12"/>
 					</textElement>
-					<textFieldExpression><![CDATA["Number of " + ($P{visit_type} == "OPD - NEW" ? "new" : "returning") + " patients : "+ $V{REPORT_COUNT}]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Number of patients : "+ $V{REPORT_COUNT}]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="10e8080a-99c6-4134-a2c0-968adf3e41b5" x="552" y="63" width="250" height="20" forecolor="#FFFFFF"/>
