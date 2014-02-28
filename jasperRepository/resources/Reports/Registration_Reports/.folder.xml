@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<folder>
+    <parent>/Reports</parent>
+    <name>Registration_Reports</name>
+    <label>Registration Reports</label>
+    <description></description>
+    <creationDate>2014-02-28T13:08:39.000+05:30</creationDate>
+    <updateDate>2014-02-28T13:08:39.000+05:30</updateDate>
+    <resource>Daily_Report_of_Registrations</resource>
+    <resource>GeographicalDistributionOfRegistrations</resource>
+    <resource>GeographicDistributionOfPatients</resource>
+    <resource>NewAndOldPatientVisitsByMonth</resource>
+    <resource>NewRegistrationsByCasteAndPV</resource>
+    <resource>SocioDemographicdistributionOfServiceUsers</resource>
+    <resource>SocioDemographicDistributionOfServiceUsersByCenter</resource>
+    <resource>SocioDemographicDistributionOfServiceUsersByProgramVillage</resource>
+</folder>

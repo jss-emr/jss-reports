@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<folder>
+    <parent>/Reports</parent>
+    <name>Lab_Reports</name>
+    <label>Lab Reports</label>
+    <description></description>
+    <creationDate>2014-02-28T13:14:17.000+05:30</creationDate>
+    <updateDate>2014-02-28T13:14:17.000+05:30</updateDate>
+    <resource>All_Test_Results</resource>
+    <resource>All_Tests_Referred_Out</resource>
+    <resource>Results_Per_Type_Of_Test</resource>
+    <resource>Summary_Report_For_ReferredOut_Cases</resource>
+    <resource>Summary_Report_For_ReferredOut_Cases_With_Abnormal_Results</resource>
+    <resource>SummaryOfSamplesForCHP</resource>
+    <resource>Total_Patients_in_Lab</resource>
+    <resource>Total_Tests_Per_Patient_And_Abnormal_Results</resource>
+</folder>
