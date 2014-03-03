@@ -11,37 +11,40 @@
 	</parameter>
 	<queryString>
 		<![CDATA[SELECT t.ageGroup,
-       		t.male,
-       		t.female,
-       		COALESCE(ROUND((t.female/t.male)*1000), 'NA') AS sexRatio,
-       		t.male+t.female AS COUNT
-		FROM
-  			(SELECT bar.ageGroup, bar.sortOrder as sortOrder,
-          		SUM(CASE WHEN bar.gender = 'M' THEN 1 ELSE 0 END) AS male,
-          		SUM(CASE WHEN bar.gender = 'F' THEN 1 ELSE 0 END) AS female
-   			FROM
-     			(SELECT person_id,
-                      gender,
-					   if(jag.age_max = 200, CONCAT('>', CAST(jag.age_min AS CHAR(10))), CONCAT(CAST(jag.age_min AS CHAR(10)), '-', CAST(jag.age_max AS CHAR(10)))) ageGroup,
-                      jag.jss_agegroup_id sortOrder
-      			FROM
-        			(SELECT p.person_id, p.birthdate, (YEAR(v.date_started)-YEAR(p.birthdate)) - (RIGHT(v.date_started,5) < RIGHT(p.birthdate,5)) AS age,p.gender, p.date_created
-          			FROM person p
-            			JOIN visit v ON v.patient_id = p.person_id
-              			AND Datediff(v.date_created, p.date_created) >= 1
-              			AND ((v.date_started >= $P{from_date} 
-              			AND v.date_started <= DATE_ADD($P{to_date},INTERVAL 1 DAY)))
-          			WHERE p.gender IN ('M','F')
-        		) AS foo
-	  		RIGHT JOIN jss_agegroups jag on foo.age >= jag.age_min and foo.age < jag.age_max
-			AND jag.group_name = 'demographicReport'
-    	) AS bar
-   		GROUP BY ageGroup) AS t
-		order by t.sortOrder asc;]]>
+                        		t.male,
+                        		t.female,
+                 			t.other,
+                        		COALESCE(ROUND((t.female/t.male)*1000), 'NA') AS sexRatio,
+                        		t.male+t.female+t.other AS COUNT
+                 		FROM
+                   			(SELECT bar.ageGroup, bar.sortOrder as sortOrder,
+                           		SUM(CASE WHEN bar.gender = 'M' THEN 1 ELSE 0 END) AS male,
+                           		SUM(CASE WHEN bar.gender = 'F' THEN 1 ELSE 0 END) AS female,
+                           		SUM(CASE WHEN bar.gender = 'O' THEN 1 ELSE 0 END) AS other
+                    			FROM
+                      			(SELECT person_id,
+                                       gender,
+                 					   if(jag.age_max = 200, CONCAT('>', CAST(jag.age_min AS CHAR(10))), CONCAT(CAST(jag.age_min AS CHAR(10)), '-', CAST(jag.age_max AS CHAR(10)))) ageGroup,
+                                       jag.jss_agegroup_id sortOrder
+                       			FROM
+                         			(SELECT p.person_id, p.birthdate, (YEAR(v.date_started)-YEAR(p.birthdate)) - (RIGHT(v.date_started,5) < RIGHT(p.birthdate,5)) AS age,p.gender, p.date_created
+                           			FROM person p
+                             			JOIN visit v ON v.patient_id = p.person_id
+                               			AND Datediff(v.date_created, p.date_created) >= 1
+                               			AND ((v.date_started >= $P{from_date}
+                               			AND v.date_started <= DATE_ADD($P{to_date},INTERVAL 1 DAY)))
+                           			WHERE p.gender IN ('M','F','O')
+                         		) AS foo
+                 	  		RIGHT JOIN jss_agegroups jag on foo.age >= jag.age_min and foo.age < jag.age_max
+                 			AND jag.group_name = 'demographicReport'
+                     	) AS bar
+                    		GROUP BY ageGroup) AS t
+                 		order by t.sortOrder asc;]]>
 	</queryString>
 	<field name="ageGroup" class="java.lang.String"/>
 	<field name="male" class="java.math.BigDecimal"/>
 	<field name="female" class="java.math.BigDecimal"/>
+	<field name="other" class="java.math.BigDecimal"/>
 	<field name="sexRatio" class="java.lang.String"/>
 	<field name="COUNT" class="java.math.BigDecimal"/>
 	<variable name="totalMale" class="java.math.BigDecimal" calculation="Sum">
@@ -49,6 +52,9 @@
 	</variable>
 	<variable name="totalFemale" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{female}]]></variableExpression>
+	</variable>
+	<variable name="totalOther" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{other}]]></variableExpression>
 	</variable>
 	<variable name="totalCount" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{COUNT}]]></variableExpression>
@@ -98,7 +104,20 @@
 				<text><![CDATA[Female]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="e80e4513-d765-48ea-8c01-d2cf2a23141c" mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement uuid="a2cef85f-8a7b-4423-b159-61b6607b4d54" mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#006699"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Other]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e80e4513-d765-48ea-8c01-d2cf2a23141c" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#006699"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -111,7 +130,7 @@
 				<text><![CDATA[Sex Ratio]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="38a90595-a433-4f91-bf24-e7f02a599562" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement uuid="38a90595-a433-4f91-bf24-e7f02a599562" mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#006699"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -167,7 +186,20 @@
 				<textFieldExpression><![CDATA[$F{female}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="5556c91c-a3cd-4cd1-858c-1587b8e683b2" mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="d522aba0-5725-48ea-9950-a5e24ce17c7d" x="333" y="0" width="111" height="20"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{other}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5556c91c-a3cd-4cd1-858c-1587b8e683b2" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -180,7 +212,7 @@
 				<textFieldExpression><![CDATA[$F{sexRatio}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="173adaf1-5d95-42b0-be58-8cd684237c2b" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="173adaf1-5d95-42b0-be58-8cd684237c2b" mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#A9C9FF"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -236,7 +268,20 @@
 				<textFieldExpression><![CDATA[$V{totalFemale}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="8c94004d-29b4-437d-818d-e2f1ad2669d2" mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="ed0f3892-7df7-4e8e-a9bd-883aa0fb0827" mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalOther}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8c94004d-29b4-437d-818d-e2f1ad2669d2" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -249,7 +294,7 @@
 				<textFieldExpression><![CDATA[$V{totalSexRatio}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="a608be4a-889a-462b-bb31-019d6353a3c9" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="a608be4a-889a-462b-bb31-019d6353a3c9" mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#A9C9FF"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>

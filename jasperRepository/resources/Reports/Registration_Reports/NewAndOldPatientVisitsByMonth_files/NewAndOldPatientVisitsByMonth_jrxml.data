@@ -40,7 +40,7 @@
 	<title>
 		<band height="100" splitType="Stretch">
 			<frame>
-				<reportElement uuid="8186addc-b74d-4c5d-a2b1-552c54f49cf0" mode="Opaque" x="0" y="0" width="555" height="100" backcolor="#006699"/>
+				<reportElement uuid="8186addc-b74d-4c5d-a2b1-552c54f49cf0" mode="Opaque" x="0" y="0" width="706" height="100" backcolor="#006699"/>
 				<staticText>
 					<reportElement uuid="fbfba68b-1486-429b-a6af-7a05cc737c5d" x="99" y="2" width="456" height="61" forecolor="#FFFFFF"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
