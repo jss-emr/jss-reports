@@ -11,36 +11,42 @@
 		<![CDATA[SELECT t.ageGroup,
        t.male,
        t.female,
+       t.other,
        COALESCE(ROUND((t.female/t.male)*1000), 'NA') AS sexRatio,
-       t.male+t.female AS COUNT
+       t.male+t.female+t.other AS COUNT
 FROM
   (SELECT bar.ageGroup as ageGroup, bar.sortOrder as sortOrder,
           SUM(CASE WHEN bar.gender = 'M' THEN 1 ELSE 0 END) AS male,
-          SUM(CASE WHEN bar.gender = 'F' THEN 1 ELSE 0 END) AS female
+          SUM(CASE WHEN bar.gender = 'F' THEN 1 ELSE 0 END) AS female,
+          SUM(CASE WHEN bar.gender = 'O' THEN 1 ELSE 0 END) AS other
    FROM
      (SELECT foo.person_id,
                       foo.gender,
-					   if(jag.age_max = 200, CONCAT('>', CAST(jag.age_min AS CHAR(10))), CONCAT(CAST(jag.age_min AS CHAR(10)), '-', CAST(jag.age_max AS CHAR(10)))) ageGroup,
+             if(jag.age_max = 200, CONCAT('>', CAST(jag.age_min AS CHAR(10))), CONCAT(CAST(jag.age_min AS CHAR(10)), '-', CAST(jag.age_max AS CHAR(10)))) ageGroup,
                       jag.jss_agegroup_id sortOrder
-		  FROM
+      FROM
          (
           SELECT p.person_id, p.birthdate, (YEAR(v.date_started)-YEAR(p.birthdate)) - (RIGHT(v.date_started,5) < RIGHT(p.birthdate,5)) AS age, p.gender
            FROM person p
-            JOIN visit v ON v.patient_id = p.person_id AND ((v.date_started >= $P{from_date} 
+            JOIN visit v ON v.patient_id = p.person_id AND ((v.date_started >= $P{from_date}
               AND v.date_started <= DATE_ADD($P{to_date},INTERVAL 1 DAY)) OR (v.date_started is null))
             JOIN patient_identifier pi on p.person_id = pi.patient_id
-		        JOIN idgen_identifier_source iis on pi.identifier like concat((select prefix from idgen_seq_id_gen sqgen where sqgen.id = iis.id ), '%') AND iis.name = $P{center}
-            WHERE gender IN ('M','F')
+            JOIN idgen_identifier_source iis
+              on pi.identifier like concat((select prefix from idgen_seq_id_gen sqgen where sqgen.id = iis.id ), '%')
+              AND iis.name = $P{center}
+            WHERE gender IN ('M','F', 'O')
         ) AS foo
-  	   RIGHT JOIN jss_agegroups jag on foo.age >= jag.age_min and foo.age < jag.age_max
-  		AND jag.group_name = 'demographicReport'
+       RIGHT JOIN jss_agegroups jag on foo.age >= jag.age_min and foo.age < jag.age_max
+      AND jag.group_name = 'demographicReport'
     ) AS bar
     GROUP BY bar.ageGroup) AS t
-    order by t.sortOrder asc;]]>
+    order by t.sortOrder asc;
+]]>
 	</queryString>
 	<field name="ageGroup" class="java.lang.String"/>
 	<field name="male" class="java.math.BigDecimal"/>
 	<field name="female" class="java.math.BigDecimal"/>
+	<field name="other" class="java.math.BigDecimal"/>
 	<field name="sexRatio" class="java.lang.String"/>
 	<field name="COUNT" class="java.math.BigDecimal"/>
 	<variable name="totalMale" class="java.math.BigDecimal" calculation="Sum">
@@ -54,6 +60,9 @@ FROM
 	</variable>
 	<variable name="totalSexRatio" class="java.math.BigDecimal">
 		<variableExpression><![CDATA[$V{totalMale} == 0 ? 0 : Math.round($V{totalFemale}/$V{totalMale}*1000)]]></variableExpression>
+	</variable>
+	<variable name="totalOther" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{other}]]></variableExpression>
 	</variable>
 	<background>
 		<band splitType="Stretch"/>
@@ -86,117 +95,138 @@ FROM
 	<columnHeader>
 		<band height="50">
 			<staticText>
-				<reportElement uuid="18681562-04a5-4fc7-8b1d-ad94db88ef0c" style="Crosstab Data Text" mode="Opaque" x="24" y="30" width="100" height="20" backcolor="#006699"/>
+				<reportElement uuid="18681562-04a5-4fc7-8b1d-ad94db88ef0c" style="Crosstab Data Text" mode="Opaque" x="0" y="30" width="100" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Age Group]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="1fc03467-7428-49db-a822-666c570f114e" style="Crosstab Data Text" mode="Opaque" x="124" y="30" width="100" height="20" backcolor="#006699"/>
+				<reportElement uuid="1fc03467-7428-49db-a822-666c570f114e" style="Crosstab Data Text" mode="Opaque" x="100" y="30" width="84" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Male]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="99d6cad2-2121-4150-a7c6-4f5572feaed2" style="Crosstab Data Text" mode="Opaque" x="224" y="30" width="100" height="20" backcolor="#006699"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Female]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="3689d6b8-69a4-4d7f-bc1a-27e7781c107a" style="Crosstab Data Text" mode="Opaque" x="324" y="30" width="100" height="20" backcolor="#006699"/>
+				<reportElement uuid="3689d6b8-69a4-4d7f-bc1a-27e7781c107a" style="Crosstab Data Text" mode="Opaque" x="355" y="30" width="100" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Sex Ratio]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="f1a54afb-7015-4c68-b412-3cfd0abe64bc" style="Crosstab Data Text" mode="Opaque" x="424" y="30" width="100" height="20" backcolor="#006699"/>
+				<reportElement uuid="f1a54afb-7015-4c68-b412-3cfd0abe64bc" style="Crosstab Data Text" mode="Opaque" x="455" y="30" width="100" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[COUNT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="99d6cad2-2121-4150-a7c6-4f5572feaed2" style="Crosstab Data Text" mode="Opaque" x="184" y="30" width="87" height="20" backcolor="#006699"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Female]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="55d3fe63-a747-470d-b820-c1501c568be6" style="Crosstab Data Text" mode="Opaque" x="271" y="30" width="84" height="20" backcolor="#006699"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Other]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
 		<band height="25">
 			<textField>
-				<reportElement uuid="7bf874d6-3811-4b05-8350-fc3b07a4e69b" x="24" y="0" width="100" height="20"/>
+				<reportElement uuid="7bf874d6-3811-4b05-8350-fc3b07a4e69b" x="-1" y="0" width="100" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{ageGroup}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="ce01da3a-f123-4774-b72d-2e25f429e4d2" x="124" y="0" width="100" height="20"/>
+				<reportElement uuid="ce01da3a-f123-4774-b72d-2e25f429e4d2" x="99" y="0" width="85" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{male}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="ec696164-0f98-4283-a172-87dfcebcfcac" x="224" y="0" width="100" height="20"/>
+				<reportElement uuid="ec696164-0f98-4283-a172-87dfcebcfcac" x="184" y="0" width="85" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{female}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="b1655801-8bb4-46a4-b7d9-f86a243925e5" mode="Opaque" x="324" y="0" width="100" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="b1655801-8bb4-46a4-b7d9-f86a243925e5" mode="Opaque" x="354" y="0" width="102" height="20" backcolor="#A9C9FF"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{sexRatio}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="91b1dbca-72dd-45e8-bfca-dfae736b72e0" mode="Opaque" x="424" y="0" width="100" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="91b1dbca-72dd-45e8-bfca-dfae736b72e0" mode="Opaque" x="455" y="0" width="100" height="20" backcolor="#A9C9FF"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{COUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b0fa6a6c-33a6-4b9c-bdda-bb11e9f69087" x="269" y="0" width="85" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{other}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
 	<summary>
 		<band height="50">
 			<textField>
-				<reportElement uuid="188b1be0-7d82-4ab2-b229-c8bce4da0ccb" mode="Opaque" x="124" y="0" width="100" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="188b1be0-7d82-4ab2-b229-c8bce4da0ccb" mode="Opaque" x="99" y="0" width="85" height="20" backcolor="#A9C9FF"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{totalMale}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="62835412-5c3f-4059-bcaa-547dd05332cb" mode="Opaque" x="224" y="0" width="100" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="62835412-5c3f-4059-bcaa-547dd05332cb" mode="Opaque" x="184" y="0" width="87" height="20" backcolor="#A9C9FF"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{totalFemale}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="c205a4e1-1373-4e90-9c6f-f9731e23bc96" mode="Opaque" x="324" y="0" width="100" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="c205a4e1-1373-4e90-9c6f-f9731e23bc96" mode="Opaque" x="354" y="0" width="101" height="20" backcolor="#A9C9FF"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{totalSexRatio}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="e98a97e8-36d7-46ef-b622-0b6fc3947759" mode="Opaque" x="424" y="0" width="100" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="e98a97e8-36d7-46ef-b622-0b6fc3947759" mode="Opaque" x="455" y="0" width="101" height="20" backcolor="#A9C9FF"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{totalCount}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="1c3c3381-8a78-47e2-a5a7-6bb41c93f914" mode="Opaque" x="24" y="0" width="100" height="20" backcolor="#A9C9FF"/>
+				<reportElement uuid="1c3c3381-8a78-47e2-a5a7-6bb41c93f914" mode="Opaque" x="-1" y="0" width="100" height="20" backcolor="#A9C9FF"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA["COUNT"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5a18ca90-dab6-4dae-aa25-04b4ad68aa36" mode="Opaque" x="271" y="0" width="83" height="20" backcolor="#A9C9FF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalOther}]]></textFieldExpression>
 			</textField>
 		</band>
 	</summary>
