@@ -95,7 +95,7 @@
 					<textElement verticalAlignment="Middle">
 						<font size="24" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA[($P{visit_type} == "REG" ? "New" : "Returning") + " Patient Registration Report"]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Daily Registration Report"]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="10e8080a-99c6-4134-a2c0-968adf3e41b5" x="92" y="63" width="184" height="20" forecolor="#FFFFFF"/>
@@ -113,7 +113,7 @@
 					<textElement verticalAlignment="Middle">
 						<font size="12"/>
 					</textElement>
-					<textFieldExpression><![CDATA["Number of " + ($P{visit_type} == "REG" ? "new" : "returning") + " patients : "+ $V{REPORT_COUNT}]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Number of patients : "+ $V{REPORT_COUNT}]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="10e8080a-99c6-4134-a2c0-968adf3e41b5" x="552" y="63" width="250" height="20" forecolor="#FFFFFF"/>
