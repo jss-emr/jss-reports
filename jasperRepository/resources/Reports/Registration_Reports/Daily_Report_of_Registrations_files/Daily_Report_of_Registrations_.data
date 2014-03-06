@@ -7,16 +7,18 @@
 	<parameter name="date" class="java.util.Date">
 		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
 	</parameter>
-	<parameter name="visit_type" class="java.util.List"/>
+	<parameter name="visit_type" class="java.lang.String"/>
 	<parameter name="centers" class="java.util.List">
-		<defaultValueExpression><![CDATA[Arrays.asList("GAN")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[Arrays.asList("Ganiyari")]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select
 			v.visit_id as visit_id,
 			pi.identifier identifier,
 			pi.patient_id as patient_id,
-			concat(pn.given_name, ' ', pn.family_name) as name,
+			vt.name as visit_type,
+			u.username as username,
+			concat(pn.given_name, ' ', pn.family_name) as patient_name,
 			v.date_started as date_started,
 			sum(case when cn.name = 'REGISTRATION FEES' then o.value_numeric else 0 end) as regFees,
 			GROUP_CONCAT(case when cn.name = 'COMMENTS' then o.value_text else '' end SEPARATOR '') as comments,
@@ -27,6 +29,8 @@
 				and vis.date_created < v.date_created
 			) last_visit
 		from  visit v
+		left outer join visit_type vt on vt.visit_type_id =  v.visit_type_id
+		left outer join users u on v.creator = u.user_id
 		left outer join encounter e on e.visit_id = v.visit_id and e.encounter_type in (select encounter_type_id from encounter_type where name ="REG")
 		left outer join obs o on e.encounter_id = o.encounter_id and o.voided = 0
 		left outer join patient_identifier pi on v.patient_id = pi.patient_id and pi.preferred = 1 and pi.voided = 0
@@ -39,22 +43,42 @@
 		group by v.visit_id,
 				pi.identifier,
 				pi.patient_id,
+				vt.name,
+				u.username,
 				concat(pn.given_name, ' ', pn.family_name),
 				v.date_started,
 				(select max(date_started)
 				from visit v where v.patient_id = e.patient_id
 				and date(v.date_created) <= date(e.date_created)
-			);]]>
+			)]]>
 	</queryString>
-	<field name="visit_id" class="java.lang.Integer"/>
-	<field name="identifier" class="java.lang.String"/>
-	<field name="patient_id" class="java.lang.Integer"/>
-	<field name="name" class="java.lang.String"/>
-	<field name="date_created" class="java.sql.Timestamp"/>
+	<field name="visit_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="identifier" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="patient_id" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="visit_type" class="java.lang.String"/>
+	<field name="username" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="patient_name" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="date_started" class="java.sql.Timestamp">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
 	<field name="regFees" class="java.lang.Double"/>
-	<field name="comments" class="java.lang.String"/>
+	<field name="comments" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
 	<field name="height" class="java.lang.Double"/>
-	<field name="weight" class="java.lang.Double"/>
+	<field name="weight" class="java.lang.Double">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
 	<field name="last_visit" class="java.sql.Timestamp"/>
 	<variable name="total_fees" class="java.lang.Double" calculation="Sum">
 		<variableExpression><![CDATA[$F{regFees}]]></variableExpression>
@@ -71,7 +95,7 @@
 					<textElement verticalAlignment="Middle">
 						<font size="24" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA["Daily Registration Report"]]></textFieldExpression>
+					<textFieldExpression><![CDATA[($P{visit_type} == "REG" ? "New" : "Returning") + " Patient Registration Report"]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="10e8080a-99c6-4134-a2c0-968adf3e41b5" x="92" y="63" width="184" height="20" forecolor="#FFFFFF"/>
@@ -89,7 +113,7 @@
 					<textElement verticalAlignment="Middle">
 						<font size="12"/>
 					</textElement>
-					<textFieldExpression><![CDATA["Number of patients : "+ $V{REPORT_COUNT}]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Number of " + ($P{visit_type} == "REG" ? "new" : "returning") + " patients : "+ $V{REPORT_COUNT}]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="10e8080a-99c6-4134-a2c0-968adf3e41b5" x="552" y="63" width="250" height="20" forecolor="#FFFFFF"/>
@@ -104,116 +128,144 @@
 	<columnHeader>
 		<band height="54">
 			<staticText>
-				<reportElement uuid="9817fae7-783d-494c-9ffe-9f9bf7cddef7" mode="Opaque" x="0" y="34" width="92" height="20" backcolor="#006699"/>
+				<reportElement uuid="9817fae7-783d-494c-9ffe-9f9bf7cddef7" mode="Opaque" x="0" y="34" width="56" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Sl No.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="9817fae7-783d-494c-9ffe-9f9bf7cddef7" mode="Opaque" x="92" y="34" width="92" height="20" backcolor="#006699"/>
+				<reportElement uuid="9817fae7-783d-494c-9ffe-9f9bf7cddef7" mode="Opaque" x="56" y="34" width="90" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Id]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="e0ec0fbf-2a38-4512-80dc-5684047a6339" mode="Opaque" x="184" y="34" width="92" height="20" backcolor="#006699"/>
+				<reportElement uuid="e0ec0fbf-2a38-4512-80dc-5684047a6339" mode="Opaque" x="146" y="34" width="104" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Name]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="25cd731b-c161-4171-9979-3464ad12aa68" mode="Opaque" x="276" y="34" width="92" height="20" backcolor="#006699"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Fees]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="ce8a2bd1-fd42-456c-82c9-840ed9cbba04" mode="Opaque" x="368" y="34" width="92" height="20" backcolor="#006699"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Height]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="83acef71-f270-4274-8497-47574c7d9e32" mode="Opaque" x="460" y="34" width="92" height="20" backcolor="#006699"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[Weight]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="cebccbc9-6780-4706-854e-ce8eac30f96c" mode="Opaque" x="552" y="34" width="158" height="20" backcolor="#006699"/>
+				<reportElement uuid="cebccbc9-6780-4706-854e-ce8eac30f96c" mode="Opaque" x="460" y="34" width="85" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Comments]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="cebccbc9-6780-4706-854e-ce8eac30f96c" mode="Opaque" x="710" y="34" width="92" height="20" backcolor="#006699"/>
+				<reportElement uuid="cebccbc9-6780-4706-854e-ce8eac30f96c" mode="Opaque" x="621" y="34" width="92" height="20" backcolor="#006699"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Last Visit Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1d40f49a-c41d-43e2-a680-7e1b441d5630" mode="Opaque" x="545" y="34" width="76" height="20" backcolor="#006699"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Visit Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fd787466-109f-441d-8850-898b98111080" mode="Opaque" x="713" y="34" width="89" height="20" backcolor="#006699"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Username]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="83acef71-f270-4274-8497-47574c7d9e32" mode="Opaque" x="390" y="34" width="70" height="20" backcolor="#006699"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Weight]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ce8a2bd1-fd42-456c-82c9-840ed9cbba04" mode="Opaque" x="320" y="34" width="70" height="20" backcolor="#006699"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Height]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="25cd731b-c161-4171-9979-3464ad12aa68" mode="Opaque" x="250" y="34" width="70" height="20" backcolor="#006699"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fees]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
 		<band height="25">
 			<textField>
-				<reportElement uuid="e480ec6b-94ee-4012-bae1-b2c540d6d8c1" x="0" y="0" width="92" height="20"/>
+				<reportElement uuid="e480ec6b-94ee-4012-bae1-b2c540d6d8c1" x="0" y="0" width="56" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="e480ec6b-94ee-4012-bae1-b2c540d6d8c1" x="92" y="0" width="92" height="20"/>
+				<reportElement uuid="e480ec6b-94ee-4012-bae1-b2c540d6d8c1" x="56" y="0" width="90" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{identifier}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true">
-				<reportElement uuid="ce14ffd7-b6b1-442f-8de4-502d7e1dfca9" x="184" y="0" width="92" height="20"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="12"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
-			</textField>
 			<textField>
-				<reportElement uuid="d53aea5b-0e8c-4a78-b555-0f5d75852a89" x="276" y="0" width="92" height="20"/>
+				<reportElement uuid="d53aea5b-0e8c-4a78-b555-0f5d75852a89" x="250" y="0" width="70" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{regFees}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="9c5d022a-a23d-4f2a-a3a3-e3856e583d8e" x="368" y="0" width="92" height="20"/>
+				<reportElement uuid="9c5d022a-a23d-4f2a-a3a3-e3856e583d8e" x="320" y="0" width="70" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{height}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="d626ecd5-8cc8-4cdb-9f89-c0a373976bc8" x="460" y="0" width="92" height="20"/>
+				<reportElement uuid="d626ecd5-8cc8-4cdb-9f89-c0a373976bc8" x="390" y="0" width="70" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{weight}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement uuid="f498ad93-4289-413b-a229-5acedcdda517" x="552" y="0" width="158" height="20"/>
+				<reportElement uuid="f498ad93-4289-413b-a229-5acedcdda517" x="460" y="0" width="85" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{comments}]]></textFieldExpression>
 			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="f40660c2-f78e-4b7c-b856-b369a0387b0c" x="545" y="0" width="76" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{visit_type}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="aff2a1fb-bb17-4df5-82c4-b18cf9e4a5ab" x="713" y="0" width="89" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+			</textField>
 			<textField>
-				<reportElement uuid="f498ad93-4289-413b-a229-5acedcdda517" x="710" y="0" width="92" height="20"/>
+				<reportElement uuid="782c0217-29e4-4ac8-b7cd-0b08ba234baa" x="146" y="0" width="104" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{patient_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="f498ad93-4289-413b-a229-5acedcdda517" x="621" y="0" width="92" height="20"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
