@@ -2,20 +2,20 @@
 <reportUnit>
     <folder>/Reports/Registration_Reports</folder>
     <name>Daily_Report_of_Registrations</name>
-    <version>9</version>
+    <version>18</version>
     <label>Daily Report of Registrations</label>
     <description></description>
-    <creationDate>2014-02-28T11:57:17.000+05:30</creationDate>
-    <updateDate>2014-02-19T12:44:43.000+05:30</updateDate>
+    <creationDate>2014-05-22T18:20:14.000+05:30</creationDate>
+    <updateDate>2014-05-23T11:28:32.000+05:30</updateDate>
     <mainReport>
         <localResource
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             dataFile="Daily_Report_of_Registrations_.data" xsi:type="fileResource">
             <folder>/Reports/Registration_Reports/Daily_Report_of_Registrations_files</folder>
             <name>Daily_Report_of_Registrations_</name>
-            <version>1</version>
+            <version>17</version>
             <label>Daily Report of Registrations</label>
-            <creationDate>2014-02-28T11:57:17.000+05:30</creationDate>
+            <creationDate>2014-05-22T18:20:14.000+05:30</creationDate>
             <updateDate>2013-06-01T16:19:37.000+05:30</updateDate>
             <fileType>jrxml</fileType>
         </localResource>
@@ -25,6 +25,9 @@
     </dataSource>
     <inputControl>
         <uri>/Resources/date</uri>
+    </inputControl>
+    <inputControl>
+        <uri>/Resources/patient_type</uri>
     </inputControl>
     <inputControl>
         <uri>/Resources/visit_type</uri>

@@ -8,13 +8,16 @@
 		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
 	</parameter>
 	<parameter name="visit_type" class="java.lang.String"/>
+	<parameter name="patient_type" class="java.lang.String">
+		<defaultValueExpression><![CDATA["New"]]></defaultValueExpression>
+	</parameter>
 	<parameter name="centers" class="java.util.List">
 		<defaultValueExpression><![CDATA[Arrays.asList("Ganiyari")]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select
 			v.visit_id as visit_id,
-			pi.identifier identifier,
+			pi.identifier as identifier,
 			pi.patient_id as patient_id,
 			vt.name as visit_type,
 			u.username as username,
@@ -36,10 +39,12 @@
 		left outer join patient_identifier pi on v.patient_id = pi.patient_id and pi.preferred = 1 and pi.voided = 0
 		left outer join idgen_identifier_source iis on pi.identifier like concat((select prefix from idgen_seq_id_gen sqgen where sqgen.id = iis.id ), '%')
 		left outer join person_name pn on v.patient_id = pn.person_id and pn.voided = 0 and pn.preferred = 1
+		join person p on p.person_id = v.patient_id
 		left outer join concept_name cn on o.concept_id = cn.concept_id
 			and concept_name_type = 'FULLY_SPECIFIED'
 			and cn.voided = 0
 		where date(v.date_started) = $P{date} and $X{IN,v.visit_type_id,visit_type} and $X{IN,iis.name,centers}
+        AND ($P{patient_type} IS NULL OR ($P{patient_type} = 'New' AND datediff(v.date_started, p.date_created) < 1) OR ($P{patient_type} = 'Returning' AND datediff(v.date_started, p.date_created) >= 1))
 		group by v.visit_id,
 				pi.identifier,
 				pi.patient_id,
@@ -95,7 +100,7 @@
 					<textElement verticalAlignment="Middle">
 						<font size="24" isBold="true"/>
 					</textElement>
-					<textFieldExpression><![CDATA["Daily Registration Report"]]></textFieldExpression>
+					<textFieldExpression><![CDATA["Daily Registration Report : " + ($P{patient_type} !=null ? $P{patient_type} : "All") + " Patients"]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="10e8080a-99c6-4134-a2c0-968adf3e41b5" x="92" y="63" width="184" height="20" forecolor="#FFFFFF"/>
