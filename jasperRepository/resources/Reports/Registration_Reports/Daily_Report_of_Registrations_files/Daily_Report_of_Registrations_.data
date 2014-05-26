@@ -7,12 +7,14 @@
 	<parameter name="date" class="java.util.Date">
 		<defaultValueExpression><![CDATA[new Date()]]></defaultValueExpression>
 	</parameter>
-	<parameter name="visit_type" class="java.lang.String"/>
+	<parameter name="visit_type" class="java.util.List">
+		<defaultValueExpression><![CDATA[Arrays.asList("OPD")]]></defaultValueExpression>
+	</parameter>
 	<parameter name="patient_type" class="java.lang.String">
 		<defaultValueExpression><![CDATA["New"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="centers" class="java.util.List">
-		<defaultValueExpression><![CDATA[Arrays.asList("Ganiyari")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[Arrays.asList("GAN")]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select
@@ -43,7 +45,7 @@
 		left outer join concept_name cn on o.concept_id = cn.concept_id
 			and concept_name_type = 'FULLY_SPECIFIED'
 			and cn.voided = 0
-		where date(v.date_started) = $P{date} and $X{IN,v.visit_type_id,visit_type} and $X{IN,iis.name,centers}
+		where date(v.date_started) = $P{date} and $X{IN,vt.name,visit_type} and $X{IN,iis.name,centers}
         AND ($P{patient_type} IS NULL OR ($P{patient_type} = 'New' AND datediff(v.date_started, p.date_created) < 1) OR ($P{patient_type} = 'Returning' AND datediff(v.date_started, p.date_created) >= 1))
 		group by v.visit_id,
 				pi.identifier,

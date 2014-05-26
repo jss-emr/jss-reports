@@ -21,12 +21,12 @@
             <creationDate>2014-02-19T12:42:58.000+05:30</creationDate>
             <updateDate>2014-02-19T12:42:58.000+05:30</updateDate>
             <language>sql</language>
-            <queryString>Select visit_type_id, name from visit_type where retired = false</queryString>
+            <queryString>Select visit_type_id, name from visit_type where retired = false order by name</queryString>
             <dataSource>
                 <uri>/Data_Sources/openmrs</uri>
             </dataSource>
         </localResource>
     </query>
     <queryVisibleColumn>name</queryVisibleColumn>
-    <queryValueColumn>visit_type_id</queryValueColumn>
+    <queryValueColumn>name</queryValueColumn>
 </inputControl>

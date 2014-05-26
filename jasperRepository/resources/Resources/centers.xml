@@ -20,7 +20,7 @@
             <creationDate>2013-06-13T13:23:29.000+05:30</creationDate>
             <updateDate>2013-06-13T13:23:29.000+05:30</updateDate>
             <language>sql</language>
-            <queryString>select name from idgen_identifier_source</queryString>
+            <queryString>SELECT name FROM idgen_identifier_source ORDER BY name</queryString>
             <dataSource>
                 <uri>/Data_Sources/openmrs</uri>
             </dataSource>
