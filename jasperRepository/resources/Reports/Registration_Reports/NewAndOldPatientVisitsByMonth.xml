@@ -2,21 +2,21 @@
 <reportUnit>
     <folder>/Reports/Registration_Reports</folder>
     <name>NewAndOldPatientVisitsByMonth</name>
-    <version>9</version>
+    <version>65</version>
     <label>New vs Return Patient Visits</label>
     <description></description>
-    <creationDate>2014-02-28T11:57:17.000+05:30</creationDate>
-    <updateDate>2013-02-21T19:40:18.000+05:30</updateDate>
+    <creationDate>2015-02-16T14:56:20.000+05:30</creationDate>
+    <updateDate>2015-02-18T16:07:04.000+05:30</updateDate>
     <mainReport>
         <localResource
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             dataFile="NewAndOldPatientVisitsByMonth_jrxml.data" xsi:type="fileResource">
             <folder>/Reports/Registration_Reports/NewAndOldPatientVisitsByMonth_files</folder>
             <name>NewAndOldPatientVisitsByMonth_jrxml</name>
-            <version>1</version>
+            <version>10</version>
             <label>Main jrxml</label>
             <description>Main jrxml</description>
-            <creationDate>2014-02-28T11:57:17.000+05:30</creationDate>
+            <creationDate>2015-02-16T14:56:20.000+05:30</creationDate>
             <updateDate>2013-01-18T11:01:12.000+05:30</updateDate>
             <fileType>jrxml</fileType>
         </localResource>
@@ -30,15 +30,18 @@
     <inputControl>
         <uri>/Resources/to_date</uri>
     </inputControl>
+    <inputControl>
+        <uri>/Resources/login_location</uri>
+    </inputControl>
     <resource>
         <localResource
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             dataFile="NewVisits.data" xsi:type="fileResource">
             <folder>/Reports/Registration_Reports/NewAndOldPatientVisitsByMonth_files</folder>
             <name>NewVisits</name>
-            <version>1</version>
+            <version>33</version>
             <label>NewVisits</label>
-            <creationDate>2014-02-28T11:57:17.000+05:30</creationDate>
+            <creationDate>2015-02-16T14:56:20.000+05:30</creationDate>
             <updateDate>2013-02-20T10:20:34.000+05:30</updateDate>
             <fileType>jrxml</fileType>
         </localResource>
@@ -49,9 +52,9 @@
             dataFile="ReturningVisits.data" xsi:type="fileResource">
             <folder>/Reports/Registration_Reports/NewAndOldPatientVisitsByMonth_files</folder>
             <name>ReturningVisits</name>
-            <version>1</version>
+            <version>14</version>
             <label>ReturningVisits</label>
-            <creationDate>2014-02-28T11:57:17.000+05:30</creationDate>
+            <creationDate>2015-02-16T14:56:20.000+05:30</creationDate>
             <updateDate>2013-02-20T10:20:34.000+05:30</updateDate>
             <fileType>jrxml</fileType>
         </localResource>

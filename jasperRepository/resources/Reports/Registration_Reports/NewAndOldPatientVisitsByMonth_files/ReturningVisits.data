@@ -9,37 +9,74 @@
 	<parameter name="to_date" class="java.util.Date">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
+	<parameter name="login_location" class="java.util.List">
+		<defaultValueExpression><![CDATA[Arrays.asList()]]></defaultValueExpression>
+	</parameter>
 	<queryString>
-		<![CDATA[SELECT t.ageGroup,
-                        		t.male,
-                        		t.female,
-                 			t.other,
-                        		COALESCE(ROUND((t.female/t.male)*1000), 'NA') AS sexRatio,
-                        		t.male+t.female+t.other AS COUNT
-                 		FROM
-                   			(SELECT bar.ageGroup, bar.sortOrder as sortOrder,
-                           		SUM(CASE WHEN bar.gender = 'M' THEN 1 ELSE 0 END) AS male,
-                           		SUM(CASE WHEN bar.gender = 'F' THEN 1 ELSE 0 END) AS female,
-                           		SUM(CASE WHEN bar.gender = 'O' THEN 1 ELSE 0 END) AS other
-                    			FROM
-                      			(SELECT person_id,
-                                       gender,
-                 					   if(jag.age_max = 200, CONCAT('>', CAST(jag.age_min AS CHAR(10))), CONCAT(CAST(jag.age_min AS CHAR(10)), '-', CAST(jag.age_max AS CHAR(10)))) ageGroup,
-                                       jag.jss_agegroup_id sortOrder
-                       			FROM
-                         			(SELECT p.person_id, p.birthdate, (YEAR(v.date_started)-YEAR(p.birthdate)) - (RIGHT(v.date_started,5) < RIGHT(p.birthdate,5)) AS age,p.gender, p.date_created
-                           			FROM person p
-                             			JOIN visit v ON v.patient_id = p.person_id
-                               			AND Datediff(v.date_created, p.date_created) >= 1
-                               			AND ((v.date_started >= $P{from_date}
-                               			AND v.date_started <= DATE_ADD($P{to_date},INTERVAL 1 DAY)))
-                           			WHERE p.gender IN ('M','F','O')
-                         		) AS foo
-                 	  		RIGHT JOIN jss_agegroups jag on foo.age >= jag.age_min and foo.age < jag.age_max
-                 			AND jag.group_name = 'demographicReport'
-                     	) AS bar
-                    		GROUP BY ageGroup) AS t
-                 		order by t.sortOrder asc;]]>
+		<![CDATA[SELECT   t.agegroup,
+         t.male,
+         t.female,
+         t.other,
+         Coalesce(Round((t.female/t.male)*1000), 'NA') AS sexratio,
+         t.male+t.female+t.other                       AS count
+FROM     (
+                    SELECT     bar.agegroup,
+                               bar.sortorder AS sortorder,
+                               Sum(
+                               CASE
+                                          WHEN bar.gender = 'M' THEN 1
+                                          ELSE 0
+                               end) AS male,
+                               Sum(
+                               CASE
+                                          WHEN bar.gender = 'F' THEN 1
+                                          ELSE 0
+                               end) AS female,
+                               Sum(
+                               CASE
+                                          WHEN bar.gender = 'O' THEN 1
+                                          ELSE 0
+                               end) AS other
+                    FROM       (
+                                        SELECT   person_id,
+                                                 gender,
+                                                 IF(jag.age_max = 200, Concat('>', Cast(jag.age_min AS CHAR(10))), Concat(Cast(jag.age_min AS CHAR(10)), '-', Cast(jag.age_max AS CHAR(10)))) agegroup,
+                                                 jag.jss_agegroup_id                                                                                                                          sortorder
+                                        FROM     (
+                                                        SELECT p.person_id,
+                                                               p.birthdate,
+                                                               (Year(v.date_started)-Year(p.birthdate)) - (RIGHT(v.date_started,5) < RIGHT(p.birthdate,5)) AS age,
+                                                               p.gender,
+                                                               p.date_created,
+                                                               max(e.encounter_id)
+                                                        FROM   person p
+                                                        JOIN   visit v
+                                                        ON     v.patient_id = p.person_id
+                                                        AND    Datediff(v.date_created, p.date_created) >= 1
+                                                        AND    ((
+                                                                             v.date_started >= $P{from_date}
+                                                                      AND    v.date_started <= date_add($P{to_date},INTERVAL 1 day)))
+                                                        JOIN   encounter e
+                                                        ON     v.visit_id = e.visit_id
+                                                        JOIN   location l
+                                                        ON     e.location_id = l.location_id
+                                                        WHERE  p.gender IN ('M',
+                                                                            'F',
+                                                                            'O')
+                                                        AND    $X{IN, l.name, login_location}
+                                        GROUP BY p.person_id,
+                                                 p.birthdate,
+                                                 (year(v.date_created) - year(p.birthdate)) - (RIGHT(v.date_created, 5) < RIGHT(p.birthdate, 5)),
+                                                 p.gender,
+                                                 p.date_created) AS foo
+                    RIGHT JOIN jss_agegroups jag
+                    ON         foo.age >= jag.age_min
+                    AND        foo.age < jag.age_max
+                    AND        jag.group_name = 'demographicReport' ) AS bar
+GROUP BY agegroup)
+AS
+  t
+  ORDER BY t.sortorder ASC;]]>
 	</queryString>
 	<field name="ageGroup" class="java.lang.String"/>
 	<field name="male" class="java.math.BigDecimal"/>
@@ -65,7 +102,7 @@
 	<columnHeader>
 		<band height="20" splitType="Stretch">
 			<staticText>
-				<reportElement uuid="2abfe639-5787-455d-a5d4-7853bba0c112" mode="Opaque" x="0" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement mode="Opaque" x="0" y="0" width="111" height="20" backcolor="#006699" uuid="2abfe639-5787-455d-a5d4-7853bba0c112"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -78,7 +115,7 @@
 				<text><![CDATA[Age Group]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="5a7985dc-bc46-42c9-8062-a7592e0c4a3c" mode="Opaque" x="111" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement mode="Opaque" x="111" y="0" width="111" height="20" backcolor="#006699" uuid="5a7985dc-bc46-42c9-8062-a7592e0c4a3c"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -91,7 +128,7 @@
 				<text><![CDATA[Male]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="b4c8d9ab-90c4-4ec5-8560-f26eeb56cf77" mode="Opaque" x="222" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement mode="Opaque" x="222" y="0" width="111" height="20" backcolor="#006699" uuid="b4c8d9ab-90c4-4ec5-8560-f26eeb56cf77"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -104,7 +141,7 @@
 				<text><![CDATA[Female]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="a2cef85f-8a7b-4423-b159-61b6607b4d54" mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#006699" uuid="a2cef85f-8a7b-4423-b159-61b6607b4d54"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -117,7 +154,7 @@
 				<text><![CDATA[Other]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="e80e4513-d765-48ea-8c01-d2cf2a23141c" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#006699" uuid="e80e4513-d765-48ea-8c01-d2cf2a23141c"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -130,7 +167,7 @@
 				<text><![CDATA[Sex Ratio]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="38a90595-a433-4f91-bf24-e7f02a599562" mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#006699"/>
+				<reportElement mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#006699" uuid="38a90595-a433-4f91-bf24-e7f02a599562"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -147,7 +184,7 @@
 	<detail>
 		<band height="20" splitType="Stretch">
 			<textField>
-				<reportElement uuid="2d85b6c9-9d25-47e8-ace6-84456dd83a99" x="0" y="0" width="111" height="20"/>
+				<reportElement x="0" y="0" width="111" height="20" uuid="2d85b6c9-9d25-47e8-ace6-84456dd83a99"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -160,7 +197,7 @@
 				<textFieldExpression><![CDATA[$F{ageGroup}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="7aaf3973-c9e9-4a44-8813-02153a66b292" x="111" y="0" width="111" height="20"/>
+				<reportElement x="111" y="0" width="111" height="20" uuid="7aaf3973-c9e9-4a44-8813-02153a66b292"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -173,7 +210,7 @@
 				<textFieldExpression><![CDATA[$F{male}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="85f9ad67-e9aa-49f5-9fb0-9b14d23b8b28" x="222" y="0" width="111" height="20"/>
+				<reportElement x="222" y="0" width="111" height="20" uuid="85f9ad67-e9aa-49f5-9fb0-9b14d23b8b28"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -186,7 +223,7 @@
 				<textFieldExpression><![CDATA[$F{female}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="d522aba0-5725-48ea-9950-a5e24ce17c7d" x="333" y="0" width="111" height="20"/>
+				<reportElement x="333" y="0" width="111" height="20" uuid="d522aba0-5725-48ea-9950-a5e24ce17c7d"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -199,7 +236,7 @@
 				<textFieldExpression><![CDATA[$F{other}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="5556c91c-a3cd-4cd1-858c-1587b8e683b2" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="5556c91c-a3cd-4cd1-858c-1587b8e683b2"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -212,7 +249,7 @@
 				<textFieldExpression><![CDATA[$F{sexRatio}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="173adaf1-5d95-42b0-be58-8cd684237c2b" mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="173adaf1-5d95-42b0-be58-8cd684237c2b"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -229,7 +266,7 @@
 	<summary>
 		<band height="50">
 			<staticText>
-				<reportElement uuid="9d25441e-db69-429d-bec7-38235af5f6be" mode="Opaque" x="0" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="0" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="9d25441e-db69-429d-bec7-38235af5f6be"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -242,7 +279,7 @@
 				<text><![CDATA[TOTAL]]></text>
 			</staticText>
 			<textField>
-				<reportElement uuid="08fbcbac-8472-4b71-8e6a-c1e347d1a882" mode="Opaque" x="111" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="111" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="08fbcbac-8472-4b71-8e6a-c1e347d1a882"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -255,7 +292,7 @@
 				<textFieldExpression><![CDATA[$V{totalMale}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="c2616eb4-a720-45ed-81c7-bb6d3b3ff089" mode="Opaque" x="222" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="222" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="c2616eb4-a720-45ed-81c7-bb6d3b3ff089"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -268,7 +305,7 @@
 				<textFieldExpression><![CDATA[$V{totalFemale}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="ed0f3892-7df7-4e8e-a9bd-883aa0fb0827" mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="333" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="ed0f3892-7df7-4e8e-a9bd-883aa0fb0827"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -281,7 +318,7 @@
 				<textFieldExpression><![CDATA[$V{totalOther}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="8c94004d-29b4-437d-818d-e2f1ad2669d2" mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="444" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="8c94004d-29b4-437d-818d-e2f1ad2669d2"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>
@@ -294,7 +331,7 @@
 				<textFieldExpression><![CDATA[$V{totalSexRatio}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement uuid="a608be4a-889a-462b-bb31-019d6353a3c9" mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#A9C9FF"/>
+				<reportElement mode="Opaque" x="555" y="0" width="111" height="20" backcolor="#A9C9FF" uuid="a608be4a-889a-462b-bb31-019d6353a3c9"/>
 				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
 					<topPen lineWidth="0.5" lineStyle="Solid"/>
 					<leftPen lineWidth="0.5" lineStyle="Solid"/>

@@ -30,6 +30,9 @@
 	</parameter>
 	<parameter name="from_date" class="java.util.Date"/>
 	<parameter name="to_date" class="java.util.Date"/>
+	<parameter name="login_location" class="java.util.List">
+		<defaultValueExpression><![CDATA[Arrays.asList()]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[select 1 from users;]]>
 	</queryString>
@@ -40,16 +43,16 @@
 	<title>
 		<band height="100" splitType="Stretch">
 			<frame>
-				<reportElement uuid="8186addc-b74d-4c5d-a2b1-552c54f49cf0" mode="Opaque" x="0" y="0" width="706" height="100" backcolor="#006699"/>
+				<reportElement mode="Opaque" x="0" y="0" width="706" height="100" backcolor="#006699" uuid="8186addc-b74d-4c5d-a2b1-552c54f49cf0"/>
 				<staticText>
-					<reportElement uuid="fbfba68b-1486-429b-a6af-7a05cc737c5d" x="99" y="2" width="456" height="61" forecolor="#FFFFFF"/>
+					<reportElement x="99" y="2" width="456" height="61" forecolor="#FFFFFF" uuid="fbfba68b-1486-429b-a6af-7a05cc737c5d"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
 						<font size="24" isBold="true"/>
 					</textElement>
 					<text><![CDATA[New vs Returning Patient Visits]]></text>
 				</staticText>
 				<textField>
-					<reportElement uuid="cc29fa2d-1c42-46a3-9f9f-1a0f9e55c7a8" x="99" y="63" width="445" height="37" forecolor="#FFFFFF"/>
+					<reportElement x="99" y="63" width="445" height="37" forecolor="#FFFFFF" uuid="cc29fa2d-1c42-46a3-9f9f-1a0f9e55c7a8"/>
 					<textElement verticalAlignment="Middle">
 						<font size="12"/>
 					</textElement>
@@ -61,23 +64,26 @@
 	<summary>
 		<band height="267" splitType="Stretch">
 			<staticText>
-				<reportElement uuid="06b808d4-df10-43eb-a7a9-88776aebf3ca" positionType="Float" x="0" y="12" width="343" height="20"/>
+				<reportElement positionType="Float" x="0" y="12" width="343" height="20" uuid="06b808d4-df10-43eb-a7a9-88776aebf3ca"/>
 				<textElement>
 					<font size="14"/>
 				</textElement>
 				<text><![CDATA[New Patient Visits]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="5f2c4837-13da-46c3-bfcc-9b69a7e46c05" positionType="Float" x="0" y="147" width="343" height="20"/>
+				<reportElement positionType="Float" x="0" y="147" width="343" height="20" uuid="5f2c4837-13da-46c3-bfcc-9b69a7e46c05"/>
 				<textElement verticalAlignment="Middle">
 					<font size="14"/>
 				</textElement>
 				<text><![CDATA[Returning Patient Visits]]></text>
 			</staticText>
 			<subreport>
-				<reportElement uuid="c5df79a3-0334-44f8-ba9a-44c4f6b49ea9" positionType="Float" x="0" y="32" width="200" height="100"/>
+				<reportElement positionType="Float" x="0" y="32" width="200" height="100" uuid="c5df79a3-0334-44f8-ba9a-44c4f6b49ea9"/>
 				<subreportParameter name="SUBREPORT_DIR">
 					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="login_location">
+					<subreportParameterExpression><![CDATA[$P{login_location}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="to_date">
 					<subreportParameterExpression><![CDATA[$P{to_date}]]></subreportParameterExpression>
@@ -89,9 +95,12 @@
 				<subreportExpression><![CDATA["repo:NewVisits"]]></subreportExpression>
 			</subreport>
 			<subreport>
-				<reportElement uuid="a2aa6cd2-e12d-4b04-8492-6361694f46c6" positionType="Float" x="0" y="167" width="200" height="100"/>
+				<reportElement positionType="Float" x="0" y="167" width="200" height="100" uuid="a2aa6cd2-e12d-4b04-8492-6361694f46c6"/>
 				<subreportParameter name="SUBREPORT_DIR">
 					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="login_location">
+					<subreportParameterExpression><![CDATA[$P{login_location}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="to_date">
 					<subreportParameterExpression><![CDATA[$P{to_date}]]></subreportParameterExpression>

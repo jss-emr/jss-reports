@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inputControl>
+    <folder>/Resources</folder>
+    <name>login_location</name>
+    <version>1</version>
+    <label>Location</label>
+    <description>Login Location. </description>
+    <creationDate>2015-02-17T16:29:46.000+05:30</creationDate>
+    <updateDate>2015-02-17T18:36:04.000+05:30</updateDate>
+    <type>11</type>
+    <mandatory>true</mandatory>
+    <readOnly>false</readOnly>
+    <visible>true</visible>
+    <query>
+        <localResource
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="query">
+            <folder>/Resources/login_location_files</folder>
+            <name>login_location</name>
+            <version>1</version>
+            <label>login_location</label>
+            <description>Locations from where the person can login</description>
+            <creationDate>2015-02-17T16:29:46.000+05:30</creationDate>
+            <updateDate>2015-02-17T16:29:46.000+05:30</updateDate>
+            <language>sql</language>
+            <queryString>select  l.name as name from location l inner join location_tag_map ltm on l.location_id = ltm.location_id inner join location_tag lt on lt.location_tag_id = ltm.location_tag_id where lt.name = 'Login Location';</queryString>
+            <dataSource>
+                <uri>/Data_Sources/openmrs</uri>
+            </dataSource>
+        </localResource>
+    </query>
+    <queryVisibleColumn>name</queryVisibleColumn>
+    <queryValueColumn>name</queryValueColumn>
+</inputControl>
