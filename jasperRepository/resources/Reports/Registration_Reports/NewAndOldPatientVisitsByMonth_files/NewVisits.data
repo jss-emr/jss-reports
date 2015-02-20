@@ -12,6 +12,9 @@
 	<parameter name="login_location" class="java.util.List">
 		<defaultValueExpression><![CDATA[Arrays.asList()]]></defaultValueExpression>
 	</parameter>
+	<parameter name="visit_type" class="java.util.List" isForPrompting="false">
+		<defaultValueExpression><![CDATA[Arrays.asList("OPD")]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[SELECT
   t.agegroup,
@@ -65,10 +68,12 @@ FROM (
                        JOIN encounter e
                          ON v.visit_id = e.visit_id
                         JOIN location l ON e.location_id = l.location_id
+                        left outer join visit_type vt on vt.visit_type_id =  v.visit_type_id
                      WHERE p.gender IN ('M',
                                         'F',
                                         'O')
                            AND $X{IN, l.name, login_location}
+                           AND $X{IN, vt.name, visit_type}
                      GROUP BY p.person_id,
                        p.birthdate,
                        (Year(v.date_created) - Year(p.birthdate)) - (RIGHT(v.date_created, 5) < RIGHT(p.birthdate, 5)),
