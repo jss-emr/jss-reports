@@ -33,6 +33,9 @@
 	<parameter name="login_location" class="java.util.List">
 		<defaultValueExpression><![CDATA[Arrays.asList()]]></defaultValueExpression>
 	</parameter>
+	<parameter name="visit_type" class="java.util.List">
+		<defaultValueExpression><![CDATA[Arrays.asList("OPD")]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[select 1 from users;]]>
 	</queryString>
@@ -91,6 +94,9 @@
 				<subreportParameter name="from_date">
 					<subreportParameterExpression><![CDATA[$P{from_date}]]></subreportParameterExpression>
 				</subreportParameter>
+				<subreportParameter name="visit_type">
+					<subreportParameterExpression><![CDATA[$P{visit_type}]]></subreportParameterExpression>
+				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA["repo:NewVisits"]]></subreportExpression>
 			</subreport>
@@ -107,6 +113,9 @@
 				</subreportParameter>
 				<subreportParameter name="from_date">
 					<subreportParameterExpression><![CDATA[$P{from_date}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="visit_type">
+					<subreportParameterExpression><![CDATA[$P{visit_type}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA["repo:ReturningVisits"]]></subreportExpression>
