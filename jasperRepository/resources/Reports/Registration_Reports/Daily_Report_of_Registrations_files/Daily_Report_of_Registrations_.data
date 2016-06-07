@@ -30,7 +30,7 @@
 			sum(case when cn.name = 'HEIGHT' then o.value_numeric else 0 end) as height,
 			sum(case when cn.name = 'WEIGHT' then o.value_numeric else 0 end) as weight,
 			(select max(date_started)
-				from visit vis where vis.patient_id = e.patient_id
+				from visit vis where vis.patient_id = v.patient_id
 				and vis.date_created < v.date_created
 			) last_visit
 		from  visit v
